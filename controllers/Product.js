@@ -1,25 +1,88 @@
 const Products = require("../models/product");
+const Users = require("../models/user");
 
-exports.getProducts = async (req, res, next) => {
-  console.log("PRODUCT==", Products);
-  try {
-    const allProducts = await Products.find();
+exports.getProd = () => {
+  // passport.authenticate("jwt-user", { session: false });
+  getProducts();
+  const getProducts = async (req, res, next) => {
+    console.log("PRODUCT==", Products);
+    try {
+      const allProducts = await Products.find();
+      res.status(200).json({
+        sucess: true,
+        data: allProducts,
+      });
+    } catch (e) {
+      res.status(401).json({
+        sucess: false,
+        data: e._message,
+      });
+      console.log("Error ==>", e);
+    }
+  };
+};
+
+exports.updateProduct = async (req, res, next) => {
+  // try {
+  let updateProduct = await Products.findById(req.params.id);
+
+  if (!updateProduct) {
+    res.status(400).json({
+      sucess: false,
+      data: "Invalid Id",
+    });
+  }
+  //Make sure the right owner is updating it's product
+  console.log("users id", updateProduct, req.user.id);
+
+  if (updateProduct.user.toString() !== req.user.id) {
+    if (!updateProduct) {
+      res.status(401).json({
+        sucess: false,
+        data: "You are not authorize to update this product",
+      });
+    }
+    updateProduct = await Products.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
     res.status(200).json({
       sucess: true,
-      data: allProducts,
+      data: updateProduct,
     });
-  } catch (e) {
-    res.status(401).json({
-      sucess: false,
-      data: e._message,
-    });
-    console.log("Error ==>", e);
   }
 };
 
 exports.createProduct = async (req, res, next) => {
+  console.log("RQ BODY", req.body);
+  const { title, description, data } = req.body;
+  let user;
   try {
-    const createProduct = await Products.create(req.body);
+    user = await Users.findById(data);
+  } catch (e) {
+    return res.status(401).json({
+      sucess: false,
+      data: "yar soryy",
+    });
+  }
+  if (!user) {
+    return res.status(401).json({
+      sucess: false,
+      data: "Invalid ID",
+    });
+  }
+
+  const newProd = new Products({
+    title,
+    description,
+    user: data,
+  });
+  try {
+    const createProduct = await newProd.save();
+    user.products.push(createProduct.id);
+    await user.save();
+
     res.status(201).json({
       sucess: true,
       data: createProduct,

@@ -4,8 +4,7 @@ var Schema = mongoose.Schema;
 var Product = new Schema({
   title: {
     type: String,
-    required: true,
-    maxLength: [20, "Title should not exceed more than 20 characters"],
+    required: true
   },
 
   description: {
@@ -14,16 +13,16 @@ var Product = new Schema({
   },
   price: {
     type: Number,
-    require: true,
+    require: false,
   },
   images: {
     type: Array,
-    require: true,
+    require: false,
   },
-  agent: {
-    type: Schema.Types.ObjectId,
+  user: {
+    type: mongoose.Schema.ObjectId,
     ref: "User",
     required: false,
   },
 });
-module.exports = mongoose.model("products", Product);
+module.exports = mongoose.model("Products", Product);

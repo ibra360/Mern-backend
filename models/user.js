@@ -1,8 +1,12 @@
 var mongoose = require("mongoose");
+var bcrypt = require("bcryptjs");
+const jwt = require('jsonwebtoken')
+
+
 var Schema = mongoose.Schema;
 // var timestamps = require("mongoose-timestamp");
 
-var User = new Schema({
+var UserSchema = new Schema({
   name: {
     type: String,
     require: false,
@@ -16,8 +20,8 @@ var User = new Schema({
   password: {
     type: String,
     require: false,
-    minLength: [4, 'Password must contain atleast 4 characters'],
-    maxLength: [12, "Password should not exceed more than 12 characters"],
+    // minLength: [4, 'Password must contain atleast 4 characters'],
+    // maxLength: [12, "Password should not exceed more than 12 characters"],
 
   },
   Contact_No: {
@@ -26,13 +30,15 @@ var User = new Schema({
   },
   products: [
     {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.ObjectId,
       ref: "Product",
       required: false,
     },
   ],
 });
 
-// User.plugin(timestamps);
 
-module.exports = mongoose.model("User", User);
+
+
+
+module.exports = mongoose.model("User", UserSchema);

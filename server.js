@@ -1,6 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 const product = require("./routes/product");
+const user = require("./routes/user");
 const connectDB = require("./config/db");
 console.log("db", connectDB);
 connectDB();
@@ -13,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 app.use("/product", product);
+app.use("/user", user);
 
 app.use((req, res) => {
   res.status(404).send({ message: "404 No Matched Route Found Bro!" });
