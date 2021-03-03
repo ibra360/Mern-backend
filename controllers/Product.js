@@ -3,7 +3,7 @@ const Users = require("../models/user");
 
 exports.getProd = async (req, res) => {
   try {
-    const allProducts = await Products.find();
+    const allProducts = await Products.find().populate("user");
     res.status(200).json({
       sucess: true,
       data: allProducts,
@@ -113,7 +113,7 @@ exports.createProduct = async (req, res, next) => {
   }
 };
 
-exports.deleteSingleProduct = async (req, res, next) => {
+exports.deleteSingleProduct = async (req, res) => {
   try {
     console.log("iiiiiii", req.params);
 
@@ -121,6 +121,7 @@ exports.deleteSingleProduct = async (req, res, next) => {
       "user"
     );
     console.log("dlt pd", deleteProduct);
+    console.log("iddddddd", req.user);
 
     if (!deleteProduct) {
      return res.status(404).json({
@@ -128,12 +129,13 @@ exports.deleteSingleProduct = async (req, res, next) => {
         error: "INVALID ID",
       });
     }
-    // if (deleteProduct.user.toString() !== req.user.id) {
-    //   res.status(401).json({
-    //     sucess: false,
-    //     data: "You are not authorize to update this product",
-    //   });
-    // }
+
+    if (deleteProduct.user.id !== req.user.id) {
+      res.status(401).json({
+        sucess: false,
+        data: "You are not authorize to update this product",
+      });
+    }
     console.log("dlt pd", deleteProduct);
     deleteProduct.user.products.pull(deleteProduct.id);
     await deleteProduct.remove();

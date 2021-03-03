@@ -3,7 +3,7 @@ const User = require("../models/user");
 
 exports.getOrder = async (req, res) => {
   try {
-    const allOrders = await Orders.find();
+    const allOrders = await Orders.find().populate('user');
     res.status(200).json({
       sucess: true,
       data: allOrders,
