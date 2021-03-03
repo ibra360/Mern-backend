@@ -1,30 +1,47 @@
 const Products = require("../models/product");
 const Users = require("../models/user");
 
-exports.getProd = () => {
-  // passport.authenticate("jwt-user", { session: false });
-  getProducts();
-  const getProducts = async (req, res, next) => {
-    console.log("PRODUCT==", Products);
-    try {
-      const allProducts = await Products.find();
-      res.status(200).json({
-        sucess: true,
-        data: allProducts,
-      });
-    } catch (e) {
-      res.status(401).json({
-        sucess: false,
-        data: e._message,
-      });
-      console.log("Error ==>", e);
-    }
-  };
+exports.getProd = async (req, res) => {
+  try {
+    const allProducts = await Products.find();
+    res.status(200).json({
+      sucess: true,
+      data: allProducts,
+    });
+  } catch (e) {
+    res.status(401).json({
+      sucess: false,
+      data: e._message,
+    });
+    console.log("Error ==>", e);
+  }
 };
 
 exports.updateProduct = async (req, res, next) => {
   // try {
-  let updateProduct = await Products.findById(req.params.id);
+  console.log("updateeeeeeeeeee", req.params);
+  const id = req.params.id;
+  let updateProduct;
+  try {
+    updateProduct = await Products.findById(id);
+    if (!id) {
+      res.status(400).json({
+        sucess: false,
+        data: "Invalid Id",
+      });
+    }
+
+    console.log("updateeeeeeeeeee 2222222222", updateProduct);
+    console.log("uiiiiii", updateProduct.toString() !== req.user.id);
+  } catch (error) {
+    console.log("err", error.message);
+  }
+
+  if (!updateProduct) {
+    console.log("err");
+  }
+
+  console.log("UP PRD", updateProduct);
 
   if (!updateProduct) {
     res.status(400).json({
@@ -33,25 +50,24 @@ exports.updateProduct = async (req, res, next) => {
     });
   }
   //Make sure the right owner is updating it's product
-  console.log("users id", updateProduct, req.user.id);
-
+  // console.log("users id", updateProduct, req.user.id);
   if (updateProduct.user.toString() !== req.user.id) {
-    if (!updateProduct) {
-      res.status(401).json({
-        sucess: false,
-        data: "You are not authorize to update this product",
-      });
-    }
-    updateProduct = await Products.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    res.status(200).json({
-      sucess: true,
-      data: updateProduct,
+    res.status(401).json({
+      sucess: false,
+      data: "You are not authorize to update this product",
     });
   }
+  console.log("2 cheezen", req.params.id, req.body);
+
+  updateProduct = await Products.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).json({
+    sucess: true,
+    data: updateProduct,
+  });
 };
 
 exports.createProduct = async (req, res, next) => {
@@ -99,17 +115,34 @@ exports.createProduct = async (req, res, next) => {
 
 exports.deleteSingleProduct = async (req, res, next) => {
   try {
-    const deleteProduct = await Products.findByIdAndDelete(req.params.id);
+    console.log("iiiiiii", req.params);
+
+    const deleteProduct = await Products.findById(req.params.id).populate(
+      "user"
+    );
+    console.log("dlt pd", deleteProduct);
+
     if (!deleteProduct) {
-      res.status(404).json({
+     return res.status(404).json({
         sucess: false,
         error: "INVALID ID",
       });
     }
+    // if (deleteProduct.user.toString() !== req.user.id) {
+    //   res.status(401).json({
+    //     sucess: false,
+    //     data: "You are not authorize to update this product",
+    //   });
+    // }
+    console.log("dlt pd", deleteProduct);
+    deleteProduct.user.products.pull(deleteProduct.id);
+    await deleteProduct.remove();
+    await deleteProduct.user.save();
+
     res.status(200).json({
       sucess: true,
       message: `${req.params.id} is succesfully deleted`,
-      data: {},
+      data: deleteProduct,
     });
   } catch (err) {
     console.log("DELETE ERROR", err.message);

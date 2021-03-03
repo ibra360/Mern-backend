@@ -35,10 +35,13 @@ var UserSchema = new Schema({
       required: false,
     },
   ],
+  orders: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: "Order",
+      required: false,
+    },
+  ],
 });
-
-
-
-
 
 module.exports = mongoose.model("User", UserSchema);

@@ -2,7 +2,7 @@ const Users = require("../models/user");
 var bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-exports.getUsers = async (req, res, next) => {
+exports.getUsers = async (req, res) => {
   console.log("User==", Users);
   try {
     const allUsers = await Users.find();
@@ -79,6 +79,30 @@ exports.loginUser = async (req, res) => {
 
   sendTokenResponse(user, 200, res, req);
 };
+
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const deleteUser = await Users.findByIdAndDelete(req.params.id);
+    if (!deleteUser) {
+      res.status(404).json({
+        sucess: false,
+        error: "INVALID ID",
+      });
+    }
+    res.status(200).json({
+      sucess: true,
+      message: `User ${req.params.id} is succesfully deleted`,
+      data: {},
+    });
+  } catch (err) {
+    console.log("DELETE ERROR", err.message);
+    res.status(404).json({
+      sucess: false,
+      error: err.message,
+    });
+  }
+};
+
 
 const sendTokenResponse = (user, statusCode, res, req) => {
   // const token = user.getSignedJwtToken();
